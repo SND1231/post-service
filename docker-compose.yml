@@ -3,13 +3,22 @@ version: "3"
 services:
   post:
     tty: true
-    build: ./docker
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
     container_name: post-service-container
     working_dir: /go/src/github.com/SND1231/post_service
     ports:
       - "9002:9002"
     volumes:
-      - ./src:/go/src/github.com/SND1231/post_service
+      - ./src/db:/go/src/github.com/SND1231/post_service/db
+      - ./src/go.mod:/go/src/github.com/SND1231/post_service/go.mod
+      - ./src/go.sum:/go/src/github.com/SND1231/post_service/go.sum
+      - ./src/main.go:/go/src/github.com/SND1231/post_service/main.go
+      - ./src/migration:/go/src/github.com/SND1231/post_service/migration
+      - ./src/model:/go/src/github.com/SND1231/post_service/model
+      - ./src/post_app_service:/go/src/github.com/SND1231/post_service/post_app_ser
+      - ./src/post_service:/go/src/github.com/SND1231/post_service/post_service
     environment:
       DB_USER: root
       DB_PASSWORD: a1b2V4d
