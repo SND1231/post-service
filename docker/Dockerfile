@@ -2,7 +2,7 @@ FROM golang:alpine
 
 ENV GO111MODULE=on
 
-WORKDIR /go/src/github.com/SND1231/post_service
+WORKDIR /go/src/github.com/SND1231/post-service
 
 RUN apk update \
  && apk add vim curl git
@@ -10,7 +10,7 @@ RUN apk update \
 COPY ./src .
 RUN git clone https://github.com/SND1231/proto-files.git \
  && mkdir proto \
- && cp -pr ./proto-files/post/* /go/src/github.com/SND1231/post_service/proto
+ && cp -pr ./proto-files/post/* /go/src/github.com/SND1231/post-service/proto
 RUN go get -u github.com/dgrijalva/jwt-go \
  && go get -u github.com/golang/protobuf \
  && go get -u github.com/gorilla/handlers \
