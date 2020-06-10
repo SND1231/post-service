@@ -14,7 +14,7 @@ services:
       - ./src/db:/go/src/github.com/SND1231/post-service/db
       - ./src/go.mod:/go/src/github.com/SND1231/post-service/go.mod
       - ./src/go.sum:/go/src/github.com/SND1231/post-service/go.sum
-      - ./src/main:/go/src/github.com/SND1231/post-service/main
+      - ./src/main.go:/go/src/github.com/SND1231/post-service/main.go
       - ./src/migration:/go/src/github.com/SND1231/post-service/migration
       - ./src/model:/go/src/github.com/SND1231/post-service/model
       - ./src/post_app_service:/go/src/github.com/SND1231/post-service/post_app_service

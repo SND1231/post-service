@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
-	post_app_service "github.com/SND1231/post_service/post_app_service"
-	pb "github.com/SND1231/post_service/proto"
+	post_app_service "github.com/SND1231/post-service/post_app_service"
+	pb "github.com/SND1231/post-service/proto"
 	"google.golang.org/grpc"
 )
 
