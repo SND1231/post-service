@@ -1,10 +1,10 @@
 package post_app_service
 
 import (
-	"github.com/SND1231/post_service/db"
-	"github.com/SND1231/post_service/model"
-	"github.com/SND1231/post_service/post_service"
-	pb "github.com/SND1231/post_service/proto"
+	"github.com/SND1231/post-service/db"
+	"github.com/SND1231/post-service/model"
+	"github.com/SND1231/post-service/post_service"
+	pb "github.com/SND1231/post-service/proto"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

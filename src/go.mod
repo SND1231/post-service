@@ -1,4 +1,4 @@
-module github.com/SND1231/post_service
+module github.com/SND1231/post-service
 
 go 1.13
 
