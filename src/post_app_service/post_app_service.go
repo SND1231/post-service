@@ -32,8 +32,8 @@ func GetPosts(request pb.GetPostsRequest) ([]*pb.Post, int32, error) {
 		count_db = count_db.Where("user_id = ?", request.Id)
 	}
 	if request.Title != "" {
-		post_db = post_db.Where("title LIKE ?", "%" + request.Title + "%")
-		count_db = count_db.Where("title LIKE ?", "%" + request.Title + "%")
+		post_db = post_db.Where("title LIKE ?", "%"+request.Title+"%")
+		count_db = count_db.Where("title LIKE ?", "%"+request.Title+"%")
 	}
 	post_db.Limit(limit).Offset(offset).Order("id desc").Find(&posts).Scan(&postList)
 	count_db.Table("posts").Find(&posts).Count(&count)
@@ -136,7 +136,7 @@ func CheckLiked(request pb.CheckLikedRequest) (bool, int32) {
 }
 
 func DeleteLike(request pb.DeleteLikeRequest) (int32, int32, error) {
-	var post_id int32 
+	var post_id int32
 
 	db := db.Connection()
 	defer db.Close()

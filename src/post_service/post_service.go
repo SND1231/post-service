@@ -1,10 +1,10 @@
 package post_service
 
 import (
+	"fmt"
 	"github.com/SND1231/post-service/db"
 	"github.com/SND1231/post-service/model"
 	pb "github.com/SND1231/post-service/proto"
-	"fmt"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
