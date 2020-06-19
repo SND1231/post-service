@@ -68,9 +68,9 @@ func (s *server) DeletePost(ctx context.Context, in *pb.DeletePostRequest) (*pb.
 // Create Like
 func (s *server) CreateLike(ctx context.Context, in *pb.CreateLikeRequest) (*pb.CreateLikeResponse, error) {
 	request := *in
-	id, err := post_app_service.CreateLike(request)
+	id, count, err := post_app_service.CreateLike(request)
 	if err == nil {
-		return &pb.CreateLikeResponse{Id: id}, nil
+		return &pb.CreateLikeResponse{Id: id, Count: count}, nil
 	} else {
 		return &pb.CreateLikeResponse{}, err
 	}
@@ -79,9 +79,9 @@ func (s *server) CreateLike(ctx context.Context, in *pb.CreateLikeRequest) (*pb.
 // Delete Like
 func (s *server) DeleteLike(ctx context.Context, in *pb.DeleteLikeRequest) (*pb.DeleteLikeResponse, error) {
 	request := *in
-	id, err := post_app_service.DeleteLike(request)
+	id, count, err := post_app_service.DeleteLike(request)
 	if err == nil {
-		return &pb.DeleteLikeResponse{Id: id}, nil
+		return &pb.DeleteLikeResponse{Id: id, Count: count}, nil
 	} else {
 		return &pb.DeleteLikeResponse{}, err
 	}
