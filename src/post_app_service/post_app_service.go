@@ -32,8 +32,8 @@ func GetPosts(request pb.GetPostsRequest) ([]*pb.Post, int32, error) {
 		count_db = count_db.Where("user_id = ?", request.Id)
 	}
 	if request.Title != "" {
-		post_db = post_db.Where("title LIKE ?", "%" + request.Title + "%")
-		count_db = count_db.Where("title LIKE ?", "%" + request.Title + "%")
+		post_db = post_db.Where("title LIKE ?", "%"+request.Title+"%")
+		count_db = count_db.Where("title LIKE ?", "%"+request.Title+"%")
 	}
 	post_db.Limit(limit).Offset(offset).Order("id desc").Find(&posts).Scan(&postList)
 	count_db.Table("posts").Find(&posts).Count(&count)
@@ -112,10 +112,10 @@ func DeletePost(request pb.DeletePostRequest) (int32, error) {
 	return id, nil
 }
 
-func CreateLike(request pb.CreateLikeRequest) (int32, error) {
+func CreateLike(request pb.CreateLikeRequest) (int32, int32, error) {
 	err := post_service.CheckLikeExists(request)
 	if err != nil {
-		return -1, err
+		return -1, 0, err
 	}
 	var post model.Post
 	db := db.Connection()
@@ -126,18 +126,24 @@ func CreateLike(request pb.CreateLikeRequest) (int32, error) {
 	db.Create(&like)
 	db.Model(&post).Association("Likes").Append([]model.Like{like})
 	if db.NewRecord(like) == false {
-		return like.ID, nil
+		return like.ID, post_service.CountLikes(request.PostId), nil
 	}
-	return -1, status.New(codes.Unknown, "作成失敗").Err()
+	return -1, 0, status.New(codes.Unknown, "作成失敗").Err()
 }
 
 func CheckLiked(request pb.CheckLikedRequest) (bool, int32) {
 	return post_service.LikeExists(request.PostId, request.UserId)
 }
 
-func DeleteLike(request pb.DeleteLikeRequest) (int32, error) {
+func DeleteLike(request pb.DeleteLikeRequest) (int32, int32, error) {
+	var post_id int32
+
 	db := db.Connection()
 	defer db.Close()
+	row := db.Table("post_likes").Where("like_id = ?", request.Id).Select("post_id").Row()
+	row.Scan(&post_id)
+
 	db.Where("id = ?", request.Id).Delete(model.Like{})
-	return request.Id, nil
+	db.Exec("DELETE FROM post_likes WHERE like_id = ?", request.Id)
+	return request.Id, post_service.CountLikes(post_id), nil
 }

@@ -8,6 +8,7 @@ require (
 	github.com/gorilla/handlers v1.4.2
 	github.com/grpc-ecosystem/grpc-gateway v1.14.4
 	github.com/jinzhu/gorm v1.9.12
+	github.com/stretchr/testify v1.6.1
 	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9
 	golang.org/x/net v0.0.0-20200602114024-627f9648deb9 // indirect
 	google.golang.org/appengine v1.6.5 // indirect

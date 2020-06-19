@@ -1,10 +1,10 @@
 package post_service
 
 import (
+	"fmt"
 	"github.com/SND1231/post-service/db"
 	"github.com/SND1231/post-service/model"
 	pb "github.com/SND1231/post-service/proto"
-	"fmt"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -125,11 +125,11 @@ func CheckLikeExists(request pb.CreateLikeRequest) error {
 	return nil
 }
 
-func CountLikes(id int32) int32 {
+func CountLikes(post_id int32) int32 {
 	var count int32
 	db := db.Connection()
 	defer db.Close()
 
-	db.Table("post_likes").Where("post_id = ?", id).Count(&count)
+	db.Table("post_likes").Where("post_id = ?", post_id).Count(&count)
 	return count
 }

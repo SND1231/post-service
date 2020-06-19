@@ -28,12 +28,12 @@ services:
       - app_network
   db-post:
     image: mysql:8.0
-    restart: always
     container_name: mysql-post-container
     ports:
       - 23306:3306
     volumes:
       - ./mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./mysql/data/init.sql:/tmp/init.sql
     environment:
       MYSQL_ROOT_PASSWORD: a1b2V4d
       MYSQL_DATABASE: ramen_app
