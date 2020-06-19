@@ -6,9 +6,10 @@ ENV CGO_ENABLED=0
 WORKDIR /go/src/github.com/SND1231/post-service
 
 RUN apk update \
- && apk add vim curl git
+ && apk add vim curl git make
 
 COPY ./src .
+COPY ./Makefile .
 RUN git clone https://github.com/SND1231/proto-files.git \
  && mkdir proto \
  && cp -pr ./proto-files/post/* /go/src/github.com/SND1231/post-service/proto
