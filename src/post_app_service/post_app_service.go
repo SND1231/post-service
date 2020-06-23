@@ -27,6 +27,7 @@ func GetPosts(request pb.GetPostsRequest) ([]*pb.Post, int32, error) {
 	defer db.Close()
 	postDb := db
 	countDb := db.Table("posts")
+
 	if request.Id != 0 {
 		postDb = postDb.Where("user_id = ?", request.Id)
 		countDb = countDb.Where("user_id = ?", request.Id)
@@ -141,6 +142,11 @@ func DeleteLike(request pb.DeleteLikeRequest) (int32, int32, error) {
 	db := db.Connection()
 	defer db.Close()
 	row := db.Table("post_likes").Where("like_id = ?", request.Id).Select("post_id").Row()
+	row.Scan(&postId)
+
+	db.Where("id = ?", request.Id).Delete(model.Like{})
+	db.Exec("DELETE FROM post_likes WHERE like_id = ?", request.Id)
+	return request.Id, post_service.CountLikes(postId), nil
 	row.Scan(&postId)
 
 	db.Where("id = ?", request.Id).Delete(model.Like{})

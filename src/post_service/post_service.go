@@ -40,9 +40,6 @@ func CheckGetPostsRequest(request pb.GetPostsRequest) error {
 	if request.Limit == 0 {
 		errorList = append(errorList, CreateBadRequestFieldViolation("Limit", "値が設定されていません"))
 	}
-	if request.Limit == 0 {
-		errorList = append(errorList, CreateBadRequestFieldViolation("id", "値が設定されていません"))
-	}
 
 	if len(errorList) > 0 {
 		return CreateError(codes.InvalidArgument, errorList)

@@ -17,7 +17,8 @@ const (
 
 func TestGetPostsSuccess(t *testing.T) {
 	InitPostTable()
-	CreateUserForTest()
+	CreatePostForTest()
+
 	request := pb.GetPostsRequest{Limit: 1, Offset: 0, Id: 0, Title: ""}
 	posts, count, err := GetPosts(request)
 
@@ -32,15 +33,73 @@ func TestGetPostsSuccess(t *testing.T) {
 }
 
 func CreateUserForTest() {
-	post_param := model.Post{Title: Title, Content: Content,
+	postParam := model.Post{Title: Title, Content: Content,
 		PhotoUrl: PhotoUrl, UserId: UserId}
 	db := db.Connection()
 	defer db.Close()
-	db.Create(&post_param)
+	db.Create(&postParam)
+
+	InitPostTable()
+}
+
+func TestGetPostSuccess(t *testing.T) {
+	CreatePostForTest()
+	postId := GetPostID()
+	CreateLikeForTest(postId)
+
+	post, err := GetPost(postId)
+
+	if err != nil {
+		t.Error("\n実際： ", "正常終了", "\n理想： ", "エラー")
+	}
+	assert.Equal(t, Title, post.Title, "The two words should be the same.")
+	assert.Equal(t, Content, post.Content, "The two words should be the same.")
+	assert.Equal(t, PhotoUrl, post.PhotoUrl, "The two words should be the same.")
+	assert.Equal(t, UserId, post.UserId, "The two words should be the same.")
+	assert.Equal(t, int32(1), post.Likes, "The two words should be the same.")
+
+	InitPostTable()
+}
+
+func CreatePostForTest() {
+	post := model.Post{Title: Title, Content: Content,
+		PhotoUrl: PhotoUrl, UserId: UserId}
+
+	db := db.Connection()
+	defer db.Close()
+
+	db.Create(&post)
 }
 
 func InitPostTable() {
 	db := db.Connection()
 	var post model.Post
 	db.Delete(&post)
+	defer db.Close()
+
+	db.Exec("DELETE FROM posts")
+	db.Exec("DELETE FROM likes")
+	db.Exec("DELETE FROM post_likes")
+}
+
+func GetPostID() int32 {
+	var id int32
+
+	db := db.Connection()
+	defer db.Close()
+
+	db.Table("posts").Count(&id)
+
+	return id
+}
+
+func CreateLikeForTest(id int32) {
+	var post model.Post
+
+	db := db.Connection()
+	defer db.Close()
+
+	like := model.Like{UserId: int32(1)}
+	db.Create(&like)
+	db.Model(&post).Association("Likes").Append([]model.Like{like})
 }
