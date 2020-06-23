@@ -25,18 +25,18 @@ func GetPosts(request pb.GetPostsRequest) ([]*pb.Post, int32, error) {
 
 	db := db.Connection()
 	defer db.Close()
-	post_db := db
-	count_db := db.Table("posts")
+	postDb := db
+	countDb := db.Table("posts")
 	if request.Id != 0 {
-		post_db = post_db.Where("user_id = ?", request.Id)
-		count_db = count_db.Where("user_id = ?", request.Id)
+		postDb = postDb.Where("user_id = ?", request.Id)
+		countDb = countDb.Where("user_id = ?", request.Id)
 	}
 	if request.Title != "" {
-		post_db = post_db.Where("title LIKE ?", "%"+request.Title+"%")
-		count_db = count_db.Where("title LIKE ?", "%"+request.Title+"%")
+		postDb = postDb.Where("title LIKE ?", "%"+request.Title+"%")
+		countDb = countDb.Where("title LIKE ?", "%"+request.Title+"%")
 	}
-	post_db.Limit(limit).Offset(offset).Order("id desc").Find(&posts).Scan(&postList)
-	count_db.Table("posts").Find(&posts).Count(&count)
+	postDb.Limit(limit).Offset(offset).Order("id desc").Find(&posts).Scan(&postList)
+	countDb.Table("posts").Find(&posts).Count(&count)
 
 	for i := 0; i < len(postList); i++ {
 		postList[i].Likes = post_service.CountLikes(postList[i].Id)
@@ -47,15 +47,15 @@ func GetPosts(request pb.GetPostsRequest) ([]*pb.Post, int32, error) {
 
 func GetPost(id int32) (pb.Post, error) {
 	var post model.Post
-	var post_param pb.Post
+	var postParam pb.Post
 
 	db := db.Connection()
 	defer db.Close()
-	db.Find(&post, id).Scan(&post_param)
+	db.Find(&post, id).Scan(&postParam)
 
-	post_param.Likes = post_service.CountLikes(post_param.Id)
+	postParam.Likes = post_service.CountLikes(postParam.Id)
 
-	return post_param, nil
+	return postParam, nil
 }
 
 func CreatePost(request pb.CreatePostRequest) (int32, error) {
@@ -64,14 +64,14 @@ func CreatePost(request pb.CreatePostRequest) (int32, error) {
 		return -1, err
 	}
 
-	post_param := model.Post{Title: request.Title, Content: request.Content,
+	postParam := model.Post{Title: request.Title, Content: request.Content,
 		PhotoUrl: request.PhotoUrl, UserId: request.UserId}
 
 	db := db.Connection()
 	defer db.Close()
-	db.Create(&post_param)
-	if db.NewRecord(post_param) == false {
-		return post_param.ID, err
+	db.Create(&postParam)
+	if db.NewRecord(postParam) == false {
+		return postParam.ID, err
 	}
 	return -1, status.New(codes.Unknown, "作成失敗").Err()
 }
@@ -84,7 +84,7 @@ func UpdatePost(request pb.UpdatePostRequest) (int32, error) {
 
 	id := request.Id
 
-	post_param := model.Post{Title: request.Title, Content: request.Content,
+	postParam := model.Post{Title: request.Title, Content: request.Content,
 		PhotoUrl: request.PhotoUrl}
 
 	db := db.Connection()
@@ -92,7 +92,7 @@ func UpdatePost(request pb.UpdatePostRequest) (int32, error) {
 	post := model.Post{}
 	db.Find(&post, id)
 
-	db.Model(&post).UpdateColumns(post_param)
+	db.Model(&post).UpdateColumns(postParam)
 	return id, nil
 
 }
@@ -104,11 +104,11 @@ func DeletePost(request pb.DeletePostRequest) (int32, error) {
 	}
 
 	id := request.Id
-	user_id := request.UserId
+	userId := request.UserId
 
 	db := db.Connection()
 	defer db.Close()
-	db.Where("id = ? AND user_id = ?", id, user_id).Delete(model.Post{})
+	db.Where("id = ? AND user_id = ?", id, userId).Delete(model.Post{})
 	return id, nil
 }
 
@@ -136,14 +136,14 @@ func CheckLiked(request pb.CheckLikedRequest) (bool, int32) {
 }
 
 func DeleteLike(request pb.DeleteLikeRequest) (int32, int32, error) {
-	var post_id int32
+	var postId int32
 
 	db := db.Connection()
 	defer db.Close()
 	row := db.Table("post_likes").Where("like_id = ?", request.Id).Select("post_id").Row()
-	row.Scan(&post_id)
+	row.Scan(&postId)
 
 	db.Where("id = ?", request.Id).Delete(model.Like{})
 	db.Exec("DELETE FROM post_likes WHERE like_id = ?", request.Id)
-	return request.Id, post_service.CountLikes(post_id), nil
+	return request.Id, post_service.CountLikes(postId), nil
 }

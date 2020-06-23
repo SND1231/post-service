@@ -25,11 +25,11 @@ func TestCheckGetPostsRequestSuccess(t *testing.T) {
 
 
 func CreateUserForTest() {
-	post_param := model.Post{Title: Title, Content: Content,
+	postParam := model.Post{Title: Title, Content: Content,
 		PhotoUrl: PhotoUrl, UserId: UserId}
 	db := db.Connection()
 	defer db.Close()
-	db.Create(&post_param)
+	db.Create(&postParam)
 }
 
 func InitPostTable() {
