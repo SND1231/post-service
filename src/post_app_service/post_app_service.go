@@ -66,7 +66,7 @@ func CreatePost(request pb.CreatePostRequest) (int32, error) {
 	}
 
 	postParam := model.Post{Title: request.Title, Content: request.Content,
-		PhotoUrl: request.PhotoUrl, UserId: request.UserId}
+		PhotoUrl: request.PhotoUrl, UserId: request.UserId, StoreInfo: request.StoreInfo}
 
 	db := db.Connection()
 	defer db.Close()
@@ -86,7 +86,7 @@ func UpdatePost(request pb.UpdatePostRequest) (int32, error) {
 	id := request.Id
 
 	postParam := model.Post{Title: request.Title, Content: request.Content,
-		PhotoUrl: request.PhotoUrl}
+		PhotoUrl: request.PhotoUrl, StoreInfo: request.StoreInfo}
 
 	db := db.Connection()
 	defer db.Close()

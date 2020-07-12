@@ -69,11 +69,8 @@ func CheckCreatePostRequest(request pb.CreatePostRequest) error {
 
 func CheckUpdatePostRequest(request pb.UpdatePostRequest) error {
 	var errorList []*errdetails.BadRequest_FieldViolation
-	if request.Title == "" {
-		errorList = append(errorList, CreateBadRequestFieldViolation("タイトル", "必須です"))
-	}
-	if request.Content == "" {
-		errorList = append(errorList, CreateBadRequestFieldViolation("内容", "必須です"))
+	if request.Id == 0 {
+		errorList = append(errorList, CreateBadRequestFieldViolation("ID", "必須です"))
 	}
 
 	if len(errorList) > 0 {
@@ -81,6 +78,7 @@ func CheckUpdatePostRequest(request pb.UpdatePostRequest) error {
 	} else {
 		return nil
 	}
+	return nil
 }
 
 func CheckDeletePostRequest(request pb.DeletePostRequest) error {
