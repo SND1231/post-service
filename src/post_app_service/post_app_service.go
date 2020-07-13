@@ -74,6 +74,7 @@ func CreatePost(request pb.CreatePostRequest) (int32, error) {
 	if db.NewRecord(postParam) == false {
 		return postParam.ID, err
 	}
+
 	return -1, status.New(codes.Unknown, "作成失敗").Err()
 }
 
@@ -121,8 +122,8 @@ func CreateLike(request pb.CreateLikeRequest) (int32, int32, error) {
 	var post model.Post
 	db := db.Connection()
 	defer db.Close()
-	db.First(&post, request.PostId)
 
+	db.First(&post, request.PostId)
 	like := model.Like{UserId: request.UserId}
 	db.Create(&like)
 	db.Model(&post).Association("Likes").Append([]model.Like{like})
