@@ -93,8 +93,8 @@ func UpdatePost(request pb.UpdatePostRequest) (int32, error) {
 	defer db.Close()
 	post := model.Post{}
 	db.Find(&post, id)
-
 	db.Model(&post).UpdateColumns(postParam)
+	
 	return id, nil
 
 }
@@ -119,6 +119,7 @@ func CreateLike(request pb.CreateLikeRequest) (int32, int32, error) {
 	if err != nil {
 		return -1, 0, err
 	}
+
 	var post model.Post
 	db := db.Connection()
 	defer db.Close()
@@ -130,6 +131,7 @@ func CreateLike(request pb.CreateLikeRequest) (int32, int32, error) {
 	if db.NewRecord(like) == false {
 		return like.ID, post_service.CountLikes(request.PostId), nil
 	}
+
 	return -1, 0, status.New(codes.Unknown, "作成失敗").Err()
 }
 
@@ -143,11 +145,6 @@ func DeleteLike(request pb.DeleteLikeRequest) (int32, int32, error) {
 	db := db.Connection()
 	defer db.Close()
 	row := db.Table("post_likes").Where("like_id = ?", request.Id).Select("post_id").Row()
-	row.Scan(&postId)
-
-	db.Where("id = ?", request.Id).Delete(model.Like{})
-	db.Exec("DELETE FROM post_likes WHERE like_id = ?", request.Id)
-	return request.Id, post_service.CountLikes(postId), nil
 	row.Scan(&postId)
 
 	db.Where("id = ?", request.Id).Delete(model.Like{})

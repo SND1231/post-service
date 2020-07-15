@@ -72,6 +72,12 @@ func CheckUpdatePostRequest(request pb.UpdatePostRequest) error {
 	if request.Id == 0 {
 		errorList = append(errorList, CreateBadRequestFieldViolation("ID", "必須です"))
 	}
+	if request.Title == "" {
+		errorList = append(errorList, CreateBadRequestFieldViolation("タイトル", "必須です"))
+	}
+	if request.Content == "" {
+		errorList = append(errorList, CreateBadRequestFieldViolation("内容", "必須です"))
+	}
 
 	if len(errorList) > 0 {
 		return CreateError(codes.InvalidArgument, errorList)
@@ -92,10 +98,19 @@ func CheckDeletePostRequest(request pb.DeletePostRequest) error {
 	db.Where("id = ? AND user_id = ?", id, userId).First(&post)
 	fmt.Println(post.ID)
 	if post.ID == 0 {
-		return status.New(codes.AlreadyExists, "ユーザが違うか、投稿がすでに存在しません").Err()
+		return status.New(codes.NotFound, "ユーザが違うか、投稿がすでに存在しません").Err()
 	}
 	return nil
 }
+
+func CheckLikeExists(request pb.CreateLikeRequest) error {
+	result, _ := LikeExists(request.PostId, request.UserId)
+	if result {
+		return status.New(codes.AlreadyExists, "すでに、いいね済みです").Err()
+	}
+	return nil
+}
+
 
 func LikeExists(postId int32, userId int32) (bool, int32) {
 	db := db.Connection()
@@ -110,14 +125,6 @@ func LikeExists(postId int32, userId int32) (bool, int32) {
 		return false, 0
 	}
 	return true, likes[0].ID
-}
-
-func CheckLikeExists(request pb.CreateLikeRequest) error {
-	result, _ := LikeExists(request.PostId, request.UserId)
-	if result {
-		return status.New(codes.AlreadyExists, "すでに、いいね済みです").Err()
-	}
-	return nil
 }
 
 func CountLikes(postId int32) int32 {

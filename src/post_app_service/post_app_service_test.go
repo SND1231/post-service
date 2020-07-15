@@ -170,12 +170,137 @@ func TestCreatePostError(t *testing.T) {
 	}
 }
 
+// 投稿更新
+func TestUpdatePostSuccess(t *testing.T) {
+	InitPostTable()
+	postId := CreatePostForTest1()
+	request := pb.UpdatePostRequest{Title: Title2, Content: Content2,
+		PhotoUrl: PhotoUrl2, StoreInfo: StoreInfo2, Id: postId}
+
+	postId, err := UpdatePost(request)
+	post := GetPostForTest(postId)
+
+	if err != nil {
+		t.Error("\n実際： ", "エラー", "\n理想： ", "正常終了")
+	}
+	assert.Equal(t, Title2, post.Title, "The two words should be the same.")
+	assert.Equal(t, Content2, post.Content, "The two words should be the same.")
+	assert.Equal(t, PhotoUrl2, post.PhotoUrl, "The two words should be the same.")
+	assert.Equal(t, StoreInfo2, post.StoreInfo, "The two words should be the same.")
+	assert.Equal(t, UserId, post.UserId, "The two words should be the same.")
+}
+
+// 投稿更新エラー
+func TestUpdatePostError(t *testing.T) {
+	InitPostTable()
+	_ = CreatePostForTest1()
+	request := pb.UpdatePostRequest{Title: Title2, Content: Content2,
+		PhotoUrl: PhotoUrl2, StoreInfo: StoreInfo2, Id: 0}
+
+	_, err := UpdatePost(request)
+
+	if err == nil {
+		t.Error("\n実際： ", "正常終了", "\n理想： ", "エラー")
+	}
+}
+
+// 投稿削除
+func TestDeletePostSuccess(t *testing.T) {
+	InitPostTable()
+	postId := CreatePostForTest1()
+	request := pb.DeletePostRequest{Id: postId, UserId: UserId}
+
+	postId, err := DeletePost(request)
+	count := CountPostNum()
+
+	if err != nil {
+		t.Error("\n実際： ", "エラー", "\n理想： ", "正常終了")
+	}
+	assert.Equal(t, 0, count, "The two words should be the same.")
+}
+
+// 投稿削除エラー
+func TestDeletePostError(t *testing.T) {
+	InitPostTable()
+	postId := CreatePostForTest1()
+	request := pb.DeletePostRequest{Id: postId, UserId: 0}
+
+	_, err := DeletePost(request)
+	
+	if err == nil {
+		t.Error("\n実際： ", "正常終了", "\n理想： ", "エラー")
+	}
+}
+
+// いいね作成
+func TestCreateLikeSuccess(t *testing.T) {
+	InitPostTable()
+	postId := CreatePostForTest1()
+	request := pb.CreateLikeRequest{PostId: postId, UserId: 5}
+
+	_, likeCount, err := CreateLike(request)
+
+	if err != nil {
+		t.Error("\n実際： ", "エラー", "\n理想： ", "正常終了")
+	}
+	assert.Equal(t, int32(2), likeCount, "The two words should be the same.")
+}
+
+// いいね作成エラー
+func TestCreateLikeError(t *testing.T) {
+	InitPostTable()
+	postId := CreatePostForTest1()
+	request := pb.CreateLikeRequest{PostId: postId, UserId: 0}
+
+	_, _ ,err := CreateLike(request)
+
+	if err != nil {
+		t.Error("\n実際： ", "正常終了", "\n理想： ", "エラー")
+	}
+}
+
+// いいね済みのチェック いいね済み
+func TestCheckLikedLiked(t *testing.T) {
+	InitPostTable()
+	postId := CreatePostForTest1()
+	request := pb.CheckLikedRequest{PostId: postId, UserId: UserId}
+
+	isLiked, _ := CheckLiked(request)
+
+	assert.Equal(t, true, isLiked, "The two words should be the same.")
+}
+
+// いいね済みのチェック いいねしてない
+func TestCheckLikedNotLiked(t *testing.T) {
+	InitPostTable()
+	postId := CreatePostForTest1()
+	request := pb.CheckLikedRequest{PostId: postId, UserId: 999}
+
+	isLiked, _ := CheckLiked(request)
+
+	assert.Equal(t, false, isLiked, "The two words should be the same.")
+}
+
+// いいね取り消し
+func TestDeleteLikeSuccess(t *testing.T) {
+	InitPostTable()
+	postId := CreatePostForTest1()
+	likeId := CreateLikeForTest(postId, 5)
+	request := pb.DeleteLikeRequest{Id: likeId}
+
+	_, likeCount, _ := DeleteLike(request)
+
+	isDeleteLike := LikeExistsForTest(likeId)
+	assert.Equal(t, true, isDeleteLike, "The two words should be the same.")
+	assert.Equal(t, int32(1), likeCount, "The two words should be the same.")
+}
+
 func CreatePostForTest1() int32 {
 	post := model.Post{Title: Title, Content: Content,
 		PhotoUrl: PhotoUrl, UserId: UserId, StoreInfo: StoreInfo}
 	
 	postId := CreatePostForTest(post)
-	CreateLikeForTest(postId, UserId)
+	_ = CreateLikeForTest(postId, UserId)
 
 	return postId
 }
@@ -185,7 +310,7 @@ func CreatePostForTest2() int32 {
 		PhotoUrl: PhotoUrl2, UserId: UserId2, StoreInfo: StoreInfo2}
 	
 	postId := CreatePostForTest(post)
-	CreateLikeForTest(postId, UserId)
+	_ = CreateLikeForTest(postId, UserId)
 
 	return postId
 }
@@ -209,16 +334,18 @@ func InitPostTable() {
 	db.Exec("DELETE FROM post_likes")
 }
 
-func CreateLikeForTest(id int32, userId int32) {
+func CreateLikeForTest(postId int32, userId int32) int32 {
 	var post model.Post
 
 	db := db.Connection()
 	defer db.Close()
 
-	db.First(&post, id)
+	db.First(&post, postId)
 	like := model.Like{UserId: userId}
 	db.Create(&like)
 	db.Model(&post).Association("Likes").Append([]model.Like{like})
+
+	return like.ID
 }
 
 func GetPostForTest(id int32) model.Post {
@@ -229,4 +356,30 @@ func GetPostForTest(id int32) model.Post {
 	db.Find(&post, id)
 
 	return post
+}
+
+func CountPostNum() int{
+	var count int
+	var posts []model.Post
+	db := db.Connection()
+	defer db.Close()
+
+	db.Table("posts").Find(&posts).Count(&count)
+
+	return count
+
+}
+
+func LikeExistsForTest(likeId int32) bool {
+	var like model.Like
+	db := db.Connection()
+	defer db.Close()
+
+	db.Table("likes").Find(like, likeId)
+
+	if likeId != 0 {
+		return true
+	} else {
+		return false
+	}
 }
