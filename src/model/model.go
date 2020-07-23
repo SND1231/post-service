@@ -10,7 +10,7 @@ type Post struct {
 	Content   string `gorm:"size:400"`
 	PhotoUrl  string `gorm:"size:400"`
 	UserId    int32
-	LikeCount int32
+	StoreInfo string `gorm:"size:100"`
 	Likes     []Like `gorm:"many2many:post_likes;"`
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -10,13 +10,13 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-//error_list [], err_msg string
-func CreateError(code codes.Code, error_list []*errdetails.BadRequest_FieldViolation) error {
+//errorList [], err_msg string
+func CreateError(code codes.Code, errorList []*errdetails.BadRequest_FieldViolation) error {
 	st := status.New(codes.InvalidArgument, "エラー発生")
 	// add error message detail
 	st, err := st.WithDetails(
 		&errdetails.BadRequest{
-			FieldViolations: error_list,
+			FieldViolations: errorList,
 		},
 	)
 	// unexpected error
@@ -28,7 +28,7 @@ func CreateError(code codes.Code, error_list []*errdetails.BadRequest_FieldViola
 	return st.Err()
 }
 
-func CreateBadRequest_FieldViolation(feild string, desc string) *errdetails.BadRequest_FieldViolation {
+func CreateBadRequestFieldViolation(feild string, desc string) *errdetails.BadRequest_FieldViolation {
 	return &errdetails.BadRequest_FieldViolation{
 		Field:       feild,
 		Description: desc,
@@ -36,54 +36,55 @@ func CreateBadRequest_FieldViolation(feild string, desc string) *errdetails.BadR
 }
 
 func CheckGetPostsRequest(request pb.GetPostsRequest) error {
-	var error_list []*errdetails.BadRequest_FieldViolation
+	var errorList []*errdetails.BadRequest_FieldViolation
 	if request.Limit == 0 {
-		error_list = append(error_list, CreateBadRequest_FieldViolation("Limit", "値が設定されていません"))
-	}
-	if request.Limit == 0 {
-		error_list = append(error_list, CreateBadRequest_FieldViolation("id", "値が設定されていません"))
+		errorList = append(errorList, CreateBadRequestFieldViolation("Limit", "値が設定されていません"))
 	}
 
-	if len(error_list) > 0 {
-		return CreateError(codes.InvalidArgument, error_list)
+	if len(errorList) > 0 {
+		return CreateError(codes.InvalidArgument, errorList)
 	} else {
 		return nil
 	}
 }
 
 func CheckCreatePostRequest(request pb.CreatePostRequest) error {
-	var error_list []*errdetails.BadRequest_FieldViolation
+	var errorList []*errdetails.BadRequest_FieldViolation
 	if request.Title == "" {
-		error_list = append(error_list, CreateBadRequest_FieldViolation("タイトル", "必須です"))
+		errorList = append(errorList, CreateBadRequestFieldViolation("タイトル", "必須です"))
 	}
 	if request.Content == "" {
-		error_list = append(error_list, CreateBadRequest_FieldViolation("内容", "必須です"))
+		errorList = append(errorList, CreateBadRequestFieldViolation("内容", "必須です"))
 	}
 	if request.UserId == 0 {
-		error_list = append(error_list, CreateBadRequest_FieldViolation("ユーザID", "必須です"))
+		errorList = append(errorList, CreateBadRequestFieldViolation("ユーザID", "必須です"))
 	}
 
-	if len(error_list) > 0 {
-		return CreateError(codes.InvalidArgument, error_list)
+	if len(errorList) > 0 {
+		return CreateError(codes.InvalidArgument, errorList)
 	} else {
 		return nil
 	}
 }
 
 func CheckUpdatePostRequest(request pb.UpdatePostRequest) error {
-	var error_list []*errdetails.BadRequest_FieldViolation
+	var errorList []*errdetails.BadRequest_FieldViolation
+	if request.Id == 0 {
+		errorList = append(errorList, CreateBadRequestFieldViolation("ID", "必須です"))
+	}
 	if request.Title == "" {
-		error_list = append(error_list, CreateBadRequest_FieldViolation("タイトル", "必須です"))
+		errorList = append(errorList, CreateBadRequestFieldViolation("タイトル", "必須です"))
 	}
 	if request.Content == "" {
-		error_list = append(error_list, CreateBadRequest_FieldViolation("内容", "必須です"))
+		errorList = append(errorList, CreateBadRequestFieldViolation("内容", "必須です"))
 	}
 
-	if len(error_list) > 0 {
-		return CreateError(codes.InvalidArgument, error_list)
+	if len(errorList) > 0 {
+		return CreateError(codes.InvalidArgument, errorList)
 	} else {
 		return nil
 	}
+	return nil
 }
 
 func CheckDeletePostRequest(request pb.DeletePostRequest) error {
@@ -92,29 +93,14 @@ func CheckDeletePostRequest(request pb.DeletePostRequest) error {
 	defer db.Close()
 
 	id := request.Id
-	user_id := request.UserId
+	userId := request.UserId
 
-	db.Where("id = ? AND user_id = ?", id, user_id).First(&post)
+	db.Where("id = ? AND user_id = ?", id, userId).First(&post)
 	fmt.Println(post.ID)
 	if post.ID == 0 {
-		return status.New(codes.AlreadyExists, "ユーザが違うか、投稿がすでに存在しません").Err()
+		return status.New(codes.NotFound, "ユーザが違うか、投稿がすでに存在しません").Err()
 	}
 	return nil
-}
-
-func LikeExists(post_id int32, user_id int32) (bool, int32) {
-	db := db.Connection()
-	defer db.Close()
-
-	var post model.Post
-	db.First(&post, post_id)
-
-	var likes []model.Like
-	db.Model(&post).Where("user_id = ?", user_id).Related(&likes, "Likes")
-	if len(likes) == 0 {
-		return false, 0
-	}
-	return true, likes[0].ID
 }
 
 func CheckLikeExists(request pb.CreateLikeRequest) error {
@@ -125,11 +111,27 @@ func CheckLikeExists(request pb.CreateLikeRequest) error {
 	return nil
 }
 
-func CountLikes(post_id int32) int32 {
+
+func LikeExists(postId int32, userId int32) (bool, int32) {
+	db := db.Connection()
+	defer db.Close()
+
+	var post model.Post
+	db.First(&post, postId)
+
+	var likes []model.Like
+	db.Model(&post).Where("user_id = ?", userId).Related(&likes, "Likes")
+	if len(likes) == 0 {
+		return false, 0
+	}
+	return true, likes[0].ID
+}
+
+func CountLikes(postId int32) int32 {
 	var count int32
 	db := db.Connection()
 	defer db.Close()
 
-	db.Table("post_likes").Where("post_id = ?", post_id).Count(&count)
+	db.Table("post_likes").Where("post_id = ?", postId).Count(&count)
 	return count
 }
