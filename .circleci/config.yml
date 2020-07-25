@@ -92,5 +92,8 @@ workflows:
   version: 2.1
   build-test-and-deploy:
     jobs:
+      - test
       - deploy:
           context: ramen_app
+          requires:
+            - test
