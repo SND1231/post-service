@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: post-deployment
+  labels:
+    app: ap
+    back: post
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ap
+      back: post
+  template:
+    metadata:
+      labels:
+        app: ap
+        back: post
+    spec:
+      containers:
+      - name: post
+        image: snd1231/post
+        ports:
+        - containerPort: 9002
+        command:
+          - sh
+          - -c
+          - go run main.go
+        env:
+          - name: DB_USER
+            value: "root"
+          - name: DB_PASSWORD
+            value: "a1b2V4d5"
+          - name: DB_NAME
+            value: "ramen_app"
+          - name: DB_ADDRESS
+            value: "db-post:3306"
