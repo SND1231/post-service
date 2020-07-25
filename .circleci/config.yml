@@ -45,14 +45,12 @@ jobs:
   deploy:
     machine: true
     steps:
+      - checkout
       - run:
           name: set shell and install tools
           command: |
             set -x; \
             apk add --no-cache --virtual .fetch-deps curl git python py-pip less groff
-      
-      - setup_remote_docker
-
       - run:
           name: install kubectl
           command: |
@@ -90,8 +88,5 @@ workflows:
   version: 2.1
   build-test-and-deploy:
     jobs:
-      - test
       - deploy:
           context: ramen_app
-          requires:
-            - test
