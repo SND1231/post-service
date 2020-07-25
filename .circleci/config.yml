@@ -47,13 +47,14 @@ jobs:
       - image: docker:18.09
     steps:
 
+      - checkout
+      - setup_remote_docker
+
       - run:
           name: set shell and install tools
           command: |
             set -x; \
             apk add --no-cache --virtual .fetch-deps curl git python py-pip less groff
-      - checkout
-      - setup_remote_docker
       - run:
           name: install kubectl
           command: |
